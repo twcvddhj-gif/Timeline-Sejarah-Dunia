@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Timeline Sejarah</title>
+<style>
+  body{margin:0;background:#10121a;color:#eaeef7;font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif}
+  h3{margin:16px}
+  .toolbar{margin:0 16px 10px;display:flex;gap:10px}
+  .btn-action{padding:8px 14px;border-radius:8px;border:1px solid #2b3350;background:#2a3250;color:#fff;cursor:pointer}
+  .btn-action:hover{background:#36406a}
+  .scroll-container{height:70vh;overflow:auto;border:1px solid #2b3350;border-radius:10px;margin:0 16px 16px;background:#171b29}
+
+  table{border-collapse:collapse;width:100%;table-layout:fixed}
+  th,td{border:1px solid #aaa350;padding:8px;text-align:left;overflow:hidden;text-overflow:ellipsis;word-break: break-word;white-space: normal}
+  thead th{position:sticky;top:0;background:#222e57;z-index:2}
+  input[type="text"],input[type="number"]{width:100%;padding:6px;border-radius:0px;border:1px solid #000;background:#222e57;color:#ffffff;font-size:20px}
+  input[type="number"]{text-align:center}
+  input[type="checkbox"]{width:20px;height:20px}
+
+
+
+
+
+
+
+  .total-cell{cursor:pointer;background:#181c2e;color:#d7e3ff;font-weight:600;user-select:none}
+  .total-cell.has-img::after{content:" 🖼️"}
+  /* Popup */
+  .backdrop{position:fixed;inset:0;background:rgba(0,0,0,.65);display:none;align-items:center;justify-content:center;z-index:99}
+
+
+
+
+
+
+
+  .popup{background:#1b2033;border:1px solid #2b3350;border-radius:12px;max-width:300px;width:calc(100% - 20px);padding:12px;max-height:90vh;overflow:auto}
+
+
+
+  .field{margin-bottom:10px;color:#af0af3;}
+
+
+
+  .label{display:block;margin-bottom:6px;color:#af0000;font-weight:600;font-size:13px}
+  .count{font-size:.85rem;color:#8ab3c7;margin-left:6px}
+
+
+
+
+  .text{width:100%;padding:8px;border-radius:8px;border:1px solid #333;background:#121521;color:#eaeef7;font-size:14px}
+
+
+   #titleInput{
+      height: 48px;
+      line-height: 1.4;
+     width: 40%;
+      min-height: 20px;
+      resize: vertical; /* bisa diubah tinggi */
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-family: Arial, sans-serif;
+      font-size: 14px;
+      word-wrap: break-word;
+      white-space: pre-wrap; /* wrap saat enter */
+}
+
+
+
+
+
+
+
+
+
+
+
+
+  .img-wrap{position:relative;background:#070a12;border:1px solid #2b3350;border-radius:10px;min-height:160px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+  .img-wrap img{max-width:100%;max-height:260px;display:block}
+  .icon-upload{position:absolute;right:10px;bottom:10px;background:#2d3a6c;border:1px solid #384167;padding:8px;border-radius:50%;cursor:pointer}
+  .article-box{max-height:140px;overflow-y:auto;border:1px solid #333;border-radius:8px;background:#121521}
+  .article-input{width:100%;height:120px;border:none;padding:8px;background:transparent;color:#eaeef7;font-size:14px;resize:none}
+  .article-input:focus{outline:none}
+  /* Scrollbar tebal & jelas */
+  .article-box::-webkit-scrollbar{width:12px}
+  .article-box::-webkit-scrollbar-thumb{background:#666;border-radius:8px}
+  .article-box::-webkit-scrollbar-thumb:hover{background:#888}
+  .links-preview a{color:#4da3ff;text-decoration:underline;display:block;margin:4px 0;word-break:break-all}
+  .actions{display:flex;gap:10px;margin-top:12px}
+  .btn{flex:1;padding:10px;border-radius:8px;border:1px solid #2b3350;background:#242a44;color:#e8ecf3;font-weight:700;cursor:pointer}
+  .btn.save{background:#2ecf92;border-color:rgba(255,255,255,.08)}
+  .btn.close{background:#343c5e}
+  .note{margin-top:6px;color:#9aa7c4;font-size:.9rem}
+</style>
+</head>
+<body>
+
+<h3>Timeline Sejarah Dunia</h3>
+
+<div class="toolbar">
+  <button id="btnInsert" class="btn-action">➕ Insert Baris</button>
+  <button id="btnDelete" class="btn-action">🗑️ Hapus Baris</button>
+</div>
+
+<div class="scroll-container" id="scrollArea">
+  <table id="tbl">
+    <thead id="coldefs">
+      <tr>
+        <!-- Atur nama & lebar kolom lewat <th> ini -->
+        <th style="width:15px"  data-type="checkbox" data-key="checked"></th>
+        <th style="width:150px" data-type="text"    data-key="item">Periode</th>
+        <th style="width:20px" data-type="number" data-key="qty">T</th>
+        <th style="width:20px" data-type="number"  data-key="harga1">B</th>
+        <th style="width:70px" data-type="text"  data-key="harga2">Thn</th>
+        <!-- 10 kolom total (noneditable, buka popup) -->
+        <th style="width:160px" data-type="imagecell" data-key="total1">Asia Barat</th>
+        <th style="width:160px" data-type="imagecell" data-key="total2">Asia Tengah/Selatan</th>
+        <th style="width:160px" data-type="imagecell" data-key="total3">Asia Timur</th>
+        <th style="width:160px" data-type="imagecell" data-key="total4">Eropa</th>
+        <th style="width:160px" data-type="imagecell" data-key="total5">Afrika</th>
+        <th style="width:160px" data-type="imagecell" data-key="total6">Amerika</th>
+        <th style="width:160px" data-type="imagecell" data-key="total7">Australia/Oseania</th>
+        <th style="width:160px" data-type="imagecell" data-key="total8">Artik/Antartika</th>
+        <th style="width:160px" data-type="imagecell" data-key="total9">Ruang Angkasa</th>
+        <th style="width:160px" data-type="imagecell" data-key="total10"></th>
+      </tr>
+    </thead>
+    <tbody id="tbody"></tbody>
+  </table>
+</div>
+
+<!-- Popup -->
+<div id="backdrop" class="backdrop" aria-hidden="true">
+  <div class="popup" role="dialog" aria-modal="true">
+    <div class="field">
+      <label for="titleInput" class="label">Judul <span id="titleCount" class="count" maxlength="60"></span></label>
+      <!-- Atur batas huruf & ukuran font di sini -->
+     <textarea id="titleInput" class="text" rows="2" maxlength="60" 
+          style="font-size:16px; resize:none; overflow-wrap:break-word; word-wrap:break-word; white-space:pre-wrap;"
+          placeholder="Tulis judul..."></textarea>
+
+    </div>
+
+    <div class="img-wrap">
+      <img id="popImg" alt="Preview"/>
+      <div id="btnPick" class="icon-upload" title="Pilih / Ganti gambar">📷</div>
+      <input type="file" id="fileInput" accept="image/*" style="display:none" />
+    </div>
+
+    <div class="field">
+      <label for="captionInput" class="label">Keterangan</label>
+      <input id="captionInput" class="text" type="text" style="font-size:14px" placeholder="Tulis keterangan singkat...">
+    </div>
+
+    <div class="field">
+      <label for="articleInput" class="label">Artikel</label>
+      <div class="article-box">
+        <textarea id="articleInput" class="article-input" placeholder="Tulis artikel di sini..."></textarea>
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="categoriesInput" class="label">Kategori (#hashtag, pisahkan spasi/koma)</label>
+      <input id="categoriesInput" class="text" type="text" style="font-size:14px" placeholder="#tag1 #tag2, #tag3">
+    </div>
+
+    <div class="field">
+      <label for="linksInput" class="label">Link website (baris baru/koma)</label>
+      <textarea id="linksInput" class="text" style="height:80px;overflow:auto" placeholder="https://contoh.com&#10;https://lainnya.com"></textarea>
+      <div id="linksPreview" class="links-preview"></div>
+    </div>
+
+    <div class="actions">
+      <button id="btnClose" class="btn close">Tutup</button>
+      <button id="btnSave" class="btn save">Simpan</button>
+    </div>
+    <div class="note">Gambar disimpan di IndexedDB, teks disimpan di localStorage per sel. Judul tampil di sel.</div>
+  </div>
+</div>
+
+<script>
+/* ==== Konstanta & Helper ==== */
+const LSK = 'tabel_dynamic_persist_v1';  // storage untuk teks
+const DB_NAME = 'TabelDynamicImagesDB_persist_v1';
+const STORE = 'images';
+const tbody = document.getElementById('tbody');
+const scrollArea = document.getElementById('scrollArea');
+
+/* Column definition parsed dari <th> */
+function parseColumns(){
+  return [...document.querySelectorAll('#coldefs th')].map(th=>({
+    label: th.textContent.trim(),
+    width: th.style.width,
+    type: th.dataset.type || 'text',
+    key: th.dataset.key
+  }));
+}
+const COLS = parseColumns();
+
+function uid(){return 'id-'+Math.random().toString(36).slice(2,9)}
+function saveRows(){ localStorage.setItem(LSK, JSON.stringify(tableData)); }
+function loadRows(){
+  try{
+    const arr = JSON.parse(localStorage.getItem(LSK)) || [];
+    arr.forEach(r=>{
+      if(!r.id) r.id=uid();
+      if(!r.hasImg) r.hasImg={};
+      if(!r.meta) r.meta={};
+    });
+    return arr;
+  }catch{return []}
+}
+
+/* ==== IndexedDB untuk gambar ==== */
+let dbPromise=null;
+function openDB(){
+  if(dbPromise) return dbPromise;
+  dbPromise=new Promise((res,rej)=>{
+    const r=indexedDB.open(DB_NAME,1);
+    r.onupgradeneeded=()=>r.result.createObjectStore(STORE);
+    r.onsuccess=()=>res(r.result);
+    r.onerror=()=>rej(r.error);
+  });
+  return dbPromise;
+}
+async function idbPut(key,blob){
+  const db=await openDB();
+  return new Promise((res,rej)=>{
+    const tx=db.transaction(STORE,'readwrite');
+    tx.objectStore(STORE).put(blob,key);
+    tx.oncomplete=()=>res(true);
+    tx.onerror=()=>rej(tx.error);
+  });
+}
+async function idbGet(key){
+  const db=await openDB();
+  return new Promise((res,rej)=>{
+    const tx=db.transaction(STORE,'readonly');
+    const rq=tx.objectStore(STORE).get(key);
+    rq.onsuccess=()=>res(rq.result||null);
+    rq.onerror=()=>rej(rq.error);
+  });
+}
+async function idbDelete(key){
+  const db=await openDB();
+  return new Promise((res,rej)=>{
+    const tx=db.transaction(STORE,'readwrite');
+    tx.objectStore(STORE).delete(key);
+    tx.oncomplete=()=>res(true);
+    tx.onerror=()=>rej(tx.error);
+  });
+}
+
+/* ==== Data tabel ==== */
+let tableData = loadRows();
+
+function ensureRows(count){
+  while(tableData.length<count){
+    const r={id:uid(),hasImg:{},meta:{}};
+    COLS.forEach(c=>{
+      if(c.type==='text'||c.type==='number') r[c.key]='';
+    });
+    tableData.push(r);
+  }
+  saveRows();
+}
+
+/* ==== Render ==== */
+let renderedCount=0;
+let activeRowIndex=null;
+
+function render(startIndex=0,count=20){
+  for(let i=0;i<count;i++){
+    const idx=startIndex+i;
+    if(idx>=tableData.length) break;
+    const row=tableData[idx];
+    const tr=document.createElement('tr');
+    tr.dataset.index=idx;
+    tr.addEventListener('click',()=>{activeRowIndex=idx;});
+    COLS.forEach(col=>{
+      const td=document.createElement('td');
+      if(col.width) td.style.width=col.width;
+
+      if(col.type==='checkbox'){
+        const cb=document.createElement('input'); cb.type='checkbox';
+        td.appendChild(cb);
+
+      }else if(col.type==='text'||col.type==='number'){
+        const inp=document.createElement('input');
+        inp.type=(col.type==='number'?'number':'text');
+        inp.value=row[col.key] ?? '';
+        inp.addEventListener('input',e=>{
+          row[col.key]=(col.type==='number') ? (+e.target.value||0) : e.target.value;
+          saveRows();
+        });
+        td.appendChild(inp);
+
+      }else if(col.type==='imagecell'){
+        td.className='total-cell'+(row.hasImg?.[col.key]?' has-img':'');
+        const title=row.meta?.[col.key]?.title || '';
+        td.textContent=title;  // judul ditampilkan di sel
+        td.title = title || 'Klik untuk buka popup';
+        td.addEventListener('click',()=>openPopup(row.id,col.key));
+      }
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  }
+}
+
+function loadMoreRows(batch=20){
+  ensureRows(renderedCount+batch);
+  render(renderedCount,batch);
+  renderedCount+=batch;
+}
+
+scrollArea.addEventListener('scroll',()=>{
+  if(scrollArea.scrollTop+scrollArea.clientHeight>=scrollArea.scrollHeight-50){
+    loadMoreRows(20);
+  }
+});
+
+/* ==== Insert & Hapus baris ==== */
+document.getElementById('btnInsert').addEventListener('click',()=>{
+  if(activeRowIndex===null){alert('Klik salah satu baris dulu untuk menentukan posisi.');return;}
+  const newRow={id:uid(),hasImg:{},meta:{}};
+  COLS.forEach(c=>{
+    if(c.type==='text'||c.type==='number') newRow[c.key]='';
+  });
+  tableData.splice(activeRowIndex+1,0,newRow);
+  saveRows(); rerenderAll();
+});
+
+document.getElementById('btnDelete').addEventListener('click',async()=>{
+  const trs=[...tbody.querySelectorAll('tr')];
+  const toDelIdx=[];
+  const toDelIds=[];
+  trs.forEach((tr,i)=>{
+    const cb=tr.querySelector('input[type=checkbox]');
+    if(cb && cb.checked){
+      toDelIdx.push(i);
+      const rid=tableData[i]?.id; if(rid) toDelIds.push(rid);
+    }
+  });
+  if(!toDelIdx.length){alert('Tidak ada baris terpilih.');return;}
+  // hapus dari data
+  for(let i=toDelIdx.length-1;i>=0;i--) tableData.splice(toDelIdx[i],1);
+  saveRows();
+  // hapus blobs (best effort)
+  const imgCols = COLS.filter(c=>c.type==='imagecell').map(c=>c.key);
+  for(const rid of toDelIds){
+    for(const k of imgCols){ await idbDelete(rid+'_'+k); }
+  }
+  rerenderAll();
+});
+
+/* ==== Popup (gambar + teks) ==== */
+const backdrop=document.getElementById('backdrop');
+const popImg=document.getElementById('popImg');
+const btnPick=document.getElementById('btnPick');
+const fileInput=document.getElementById('fileInput');
+const btnSave=document.getElementById('btnSave');
+const btnClose=document.getElementById('btnClose');
+
+const titleInput=document.getElementById('titleInput');
+const titleCount=document.getElementById('titleCount');
+const captionInput=document.getElementById('captionInput');
+const articleInput=document.getElementById('articleInput');
+const categoriesInput=document.getElementById('categoriesInput');
+const linksInput=document.getElementById('linksInput');
+const linksPreview=document.getElementById('linksPreview');
+
+let currentRowId=null,currentKey=null,currentBlob=null,currentURL=null;
+
+function setPreview(blob){
+  if(currentURL){URL.revokeObjectURL(currentURL);currentURL=null;}
+  if(blob){currentURL=URL.createObjectURL(blob);popImg.src=currentURL;}
+  else{popImg.removeAttribute('src');}
+}
+function updateTitleCount(){
+  const max=titleInput.maxLength>0?titleInput.maxLength:Infinity;
+  const used=titleInput.value.length;
+  titleCount.textContent=isFinite(max)?`(${used}/${max})`:`(${used})`;
+}
+titleInput.addEventListener('input',updateTitleCount);
+
+function parseLinks(str){
+  return str.split(/[\n,]+/).map(s=>s.trim()).filter(Boolean).map(u=>{
+    if(!/^https?:\/\//i.test(u)) return 'https://'+u;
+    return u;
+  });
+}
+function renderLinksPreview(list){
+  linksPreview.innerHTML='';
+  list.forEach(u=>{
+    const a=document.createElement('a');
+    a.href=u; a.target='_blank'; a.rel='noopener noreferrer';
+    a.textContent=u;
+    linksPreview.appendChild(a);
+  });
+}
+linksInput.addEventListener('input',()=>{
+  renderLinksPreview(parseLinks(linksInput.value));
+});
+
+async function openPopup(rowId,key){
+  currentRowId=rowId; currentKey=key;
+
+  // muat gambar dari IDB
+  const blob=await idbGet(rowId+'_'+key);
+  currentBlob=blob; setPreview(blob);
+
+  // muat meta teks dari localStorage
+  const row = tableData.find(r=>r.id===rowId);
+  const meta = (row.meta && row.meta[key]) ? row.meta[key] : {};
+  titleInput.value = meta.title || '';
+  captionInput.value = meta.caption || '';
+  articleInput.value = meta.article || '';
+  categoriesInput.value = meta.categories ? meta.categories.join(' ') : '';
+  linksInput.value = meta.links ? meta.links.join('\n') : '';
+  renderLinksPreview(meta.links || []);
+  updateTitleCount();
+
+  backdrop.style.display='flex';
+}
+function closePopup(){
+  backdrop.style.display='none';
+  setPreview(null);
+  currentBlob=null; currentRowId=null; currentKey=null;
+}
+btnClose.addEventListener('click',closePopup);
+backdrop.addEventListener('click',e=>{ if(e.target===backdrop) closePopup(); });
+
+btnPick.addEventListener('click',()=>fileInput.click());
+fileInput.addEventListener('change',e=>{
+  const f=e.target.files[0];
+  if(f){ currentBlob=f; setPreview(f); }
+  fileInput.value='';
+});
+
+btnSave.addEventListener('click', async ()=>{
+  if(!currentRowId || !currentKey) return;
+  // simpan gambar (kalau ada / tetap sama pun ok)
+  if(currentBlob){ await idbPut(currentRowId+'_'+currentKey, currentBlob); }
+
+  // simpan meta teks
+  const row = tableData.find(r=>r.id===currentRowId);
+  if(!row.meta) row.meta={};
+  if(!row.meta[currentKey]) row.meta[currentKey]={};
+
+  const cats = categoriesInput.value.split(/[\s,]+/).map(x=>x.trim()).filter(Boolean);
+  const links = parseLinks(linksInput.value);
+
+  row.meta[currentKey].title = titleInput.value.trim();
+  row.meta[currentKey].caption = captionInput.value.trim();
+  row.meta[currentKey].article = articleInput.value;
+  row.meta[currentKey].categories = cats;
+  row.meta[currentKey].links = links;
+  row.hasImg[currentKey] = !!currentBlob;
+
+  saveRows();
+  // update tampilan sel (judul & ikon)
+  rerenderAll();
+  closePopup();
+});
+
+/* ==== Rerender ==== */
+function rerenderAll(){
+  tbody.innerHTML=''; renderedCount=0; loadMoreRows(40);
+}
+
+/* ==== Init ==== */
+loadMoreRows(40);
+</script>
+</body>
+</html>
